@@ -17,8 +17,8 @@ const {
 // Para verificar que el servicio está vivo
 router.get('/health', (req, res) => {
     res.json({
-        servicio: 'informes-service',
-        estado: 'ok',
+        servicio: 'pro ando el microservicio de informes-service',
+        estado: 'Seeeeeeeeeeeeeee',
         timestamp: new Date().toISOString()
     });
 });

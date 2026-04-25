@@ -22,12 +22,12 @@ app.use('/api/informes', informeRoutes);
 // Si ninguna ruta coincidió
 app.use((req, res) => {
     res.status(404).json({
-        error: `Ruta ${req.method} ${req.path} no existe`
+        error: `La ruta ${req.method} ${req.path} no existe`
     });
 });
 
 app.listen(PORT, () => {
-    console.log(`\n📈 Informes Service en http://localhost:${PORT}`);
+    console.log(`\Informes Service en http://localhost:${PORT}`);
     console.log(`  GET  /api/informes/health`);
     console.log(`  GET  /api/informes/dashboard`);
     console.log(`  GET  /api/informes/circuitos`);
