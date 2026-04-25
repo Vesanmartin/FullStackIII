@@ -11,7 +11,7 @@
 class CalculadorKPI {
 
   calculate(data) {
-    // Si una subclase no implementa esto, lanza error
+    // ojo:: Si una subclase no implementa esto, lanza error
     throw new Error(`${this.constructor.name} debe implementar calculate()`);
   }
 
@@ -43,7 +43,7 @@ class CalculadorVentas extends CalculadorKPI {
   }
 }
 
-// ── Calculador de Inventario ─────────────────────────────────────
+// Calculador de Inventario
 class CalculadorInventario extends CalculadorKPI {
 
   calculate(data) {
@@ -87,7 +87,55 @@ class CalculadorRentabilidad extends CalculadorKPI {
 }
 
 
-// Esta es la clase principal del patrón.
+// Calculador tendencias en factory
+
+class CalculadorTendencias extends CalculadorKPI {
+
+  calculate(data) {
+    this.validate(data);
+
+    // Ordenar por periodo
+    const ordenado = data.sort((a, b) =>
+      new Date(a.periodo) - new Date(b.periodo)
+    );
+
+    // Calcular variación entre períodos
+    const variaciones = [];
+    for (let i = 1; i < ordenado.length; i++) {
+      const anterior = ordenado[i - 1].ventas;
+      const actual   = ordenado[i].ventas;
+      const variacion = ((actual - anterior) / anterior * 100).toFixed(1);
+
+      variaciones.push({
+        periodo:   ordenado[i].periodo,
+        ventas:    actual,
+        variacion: parseFloat(variacion),
+        tendencia: variacion > 0 ? 'Tendencia al alza' : 'Tendencia a la baja'
+      });
+    }
+
+    // Tendencia general
+    const promedioVariacion = variaciones.reduce(
+      (s, v) => s + v.variacion, 0
+    ) / variaciones.length;
+
+    return {
+      tipo:              'Tendencias',
+      periodos:          ordenado.length,
+      variaciones,
+      promedioVariacion: promedioVariacion.toFixed(1) + '%',
+      tendenciaGeneral:  promedioVariacion > 0
+        ? 'Tendencia al alza'
+        : 'Tendencia a la baja',
+      mejorPeriodo: ordenado.reduce((max, item) =>
+        item.ventas > max.ventas ? item : max
+      ).periodo
+    };
+  }
+}
+
+
+// Esta es la clase principal del Factory Method
 // El controlador solo habla con KPIFactory, nunca instancia
 // SalesKPICalculator directamente.
 class FabricaKPI {
@@ -98,9 +146,10 @@ class FabricaKPI {
     ventas:         CalculadorVentas,
     inventario:     CalculadorInventario,
     rentabilidad: CalculadorRentabilidad,
+    tendencias: CalculadorTendencias,
   };
 
-  // KPIFactory.create('sales') :  devuelve new SalesKPICalculator()
+  // KPIFactory.create('ventas') :  devuelve new SalesKPICalculator()
   static crear(type) {
     const Calculador = this.#calculatores[type];
 
@@ -120,6 +169,8 @@ class FabricaKPI {
   }
 }
 
+
+  
 // Exportamos solo la fábrica porque no se necesita que nadie de afuera conozca las subclases. El controlador solo habla con KPIFactory, nunca con SalesKPICalculator directamente.
 
 module.exports = FabricaKPI;
