@@ -1,111 +1,117 @@
 // src/services/informeService.js
 
-// SERVICE — capa de lógica de negocio
 
-// Este archivo coordinadir src\patterns las llamadas a otros microservicios
-// usando el Circuit Breaker para proteger el sistema.
-// El controlador llama a este service, no a axios directamente.
+// SERVICIO: Generador de Dashboard
+
+// Llama a todos los microservicios y agrupa la información
+// para generar el dashboard ejecutivo completo.
+// Usa Circuit Breaker para proteger cada llamada.
 
 
-const axios = require('axios');
+const axios          = require('axios');
 const CircuitBreaker = require('../patterns/circuitBreaker');
 
-// Creamos UN breaker por cada servicio externo que consultamos
-// Si kpi-service falla 3 veces, su circuito se abre
-// Si gestion-service falla 3 veces, su circuito se abre
-// Son independientes — uno no afecta al otro
-const kpiBreaker = new CircuitBreaker({
-    nombre: 'KPI-Service',
-    limite: 3,
-    tiempoEspera: 10000   // 10 segundos
-});
+// ── URLs de los microservicios ────────────────────────────────────
+// Cuando tus compañeros terminen sus servicios, solo cambia las URLs
+const SERVICIOS = {
+  kpi:   process.env.KPI_SERVICE_URL    || 'http://localhost:3002',
+  auth:  process.env.AUTH_SERVICE_URL   || 'http://localhost:3001',
+  datos: process.env.GESTION_SERVICE_URL   || 'http://localhost:3003',
+};
 
-const gestionBreaker = new CircuitBreaker({
-    nombre: 'Gestion-Service',
-    limite: 3,
-    tiempoEspera: 15000   // 15 segundos
-});
+// Un Circuit Breaker por cada servicio externo
+const breakerKPI   = new CircuitBreaker({ nombre: 'KPI-Service',   limite: 3, tiempoEspera: 10000 });
+const breakerAuth  = new CircuitBreaker({ nombre: 'Auth-Service',  limite: 3, tiempoEspera: 10000 });
+const breakerDatos = new CircuitBreaker({ nombre: 'Gestion-Service',  limite: 3, tiempoEspera: 10000 });
 
 
-class InformeService {
+class ServicioInformes {
 
-    // ── Genera el informe completo del dashboard ───────────────────
-    async generarDashboard(usuarioId) {
+  // Dashboard completo 
+  async generarDashboard(usuarioId) {
 
-        // Llamamos a ambos servicios en paralelo con Promise.all
-        // Si uno falla, el otro sigue funcionando gracias al try/catch
-        const [kpiData, gestionData] = await Promise.all([
-            this._obtenerKPIs(),
-            this._obtenerDatosGestion()
-        ]);
+    // Se llama a todos los servicios en paralelo
+    // Si uno falla, los otros siguen funcionando
+    const [kpis, usuarios, datos] = await Promise.all([
+      this._obtenerKPIs(),
+      this._obtenerUsuarios(),
+      this._obtenerDatos()
+    ]);
 
-        return {
-            titulo: 'Dashboard Ejecutivo — Grupo Cordillera',
-            generadoPor: usuarioId,
-            generadoEn: new Date().toISOString(),
-            estadoCircuitos: this.obtenerEstadoCircuitos(),
-            kpis: kpiData,
-            gestion: gestionData
-        };
+    return {
+      titulo:      'Dashboard Ejecutivo — Grupo Cordillera',
+      generadoPor: usuarioId,
+      generadoEn:  new Date().toISOString(),
+      estadoCircuitos: this.obtenerEstadoCircuitos(),
+      resumen: {
+        kpis,
+        usuarios,
+        datos
+      }
+    };
+  }
+
+
+  //  Obtener KPIs desde kpi-service
+  async _obtenerKPIs() {
+    try {
+      return await breakerKPI.ejecutar(async () => {
+        const respuesta = await axios.get(
+          `${SERVICIOS.kpi}/api/kpis/tipos`,
+          { timeout: 3000 }
+        );
+        return { disponible: true, datos: respuesta.data };
+      });
+    } catch (error) {
+      console.warn('KPI Service no disponible');
+      return { disponible: false, mensaje: 'KPIs temporalmente no disponibles' };
     }
+  }
 
 
-    // ── Llama a kpi-service protegido por Circuit Breaker ─────────
-    async _obtenerKPIs() {
-        try {
-            // La función que pasamos es la llamada HTTP real
-            // Si falla 3 veces, el breaker la bloquea automáticamente
-            return await kpiBreaker.ejecutar(async () => {
-                const respuesta = await axios.get(
-                    `${process.env.KPI_SERVICE_URL}/api/kpis/summary`,
-                    { timeout: 3000 }   // espera máximo 3 segundos
-                );
-                return respuesta.data;
-            });
-
-        } catch (err) {
-            // Si el circuito está abierto o el servicio falló
-            // devolvemos datos de respaldo en vez de caer
-            console.warn('KPI Service no disponible, usando fallback');
-            return {
-                fallback: true,
-                mensaje: 'KPIs temporalmente no disponibles',
-                datos: null
-            };
-        }
+  // Obtener usuarios desde auth-service 
+  async _obtenerUsuarios() {
+    try {
+      return await breakerAuth.ejecutar(async () => {
+        const respuesta = await axios.get(
+          `${SERVICIOS.auth}/api/auth/health`,
+          { timeout: 3000 }
+        );
+        return { disponible: true, datos: respuesta.data };
+      });
+    } catch (error) {
+      console.warn('Auth Service no disponible');
+      return { disponible: false, mensaje: 'Usuarios temporalmente no disponibles' };
     }
+  }
 
 
-    // ── Llama a gestion-service protegido por Circuit Breaker ─────
-    async _obtenerDatosGestion() {
-        try {
-            return await gestionBreaker.ejecutar(async () => {
-                const respuesta = await axios.get(
-                    `${process.env.GESTION_SERVICE_URL}/api/gestion/resumen`,
-                    { timeout: 3000 }
-                );
-                return respuesta.data;
-            });
-
-        } catch (err) {
-            console.warn('Gestion Service no disponible, usando fallback');
-            return {
-                fallback: true,
-                mensaje: 'Datos de gestión temporalmente no disponibles',
-                datos: null
-            };
-        }
+  // Obtener datos desde data-service
+  async _obtenerDatos() {
+    try {
+      return await breakerDatos.ejecutar(async () => {
+        const respuesta = await axios.get(
+          `${SERVICIOS.datos}/api/data/health`,
+          { timeout: 3000 }
+        );
+        return { disponible: true, datos: respuesta.data };
+      });
+    } catch (error) {
+      console.warn('Data Service no disponible');
+      return { disponible: false, mensaje: 'Datos temporalmente no disponibles' };
     }
+  }
 
 
-    // ── Estado de los circuitos para monitoreo ────────────────────
-    obtenerEstadoCircuitos() {
-        return {
-            kpiBreaker: kpiBreaker.obtenerEstado(),
-            gestionBreaker: gestionBreaker.obtenerEstado()
-        };
-    }
+  // Estado de los circuit breakers
+  obtenerEstadoCircuitos() {
+    return {
+      kpiBreaker:   breakerKPI.obtenerEstado(),
+      authBreaker:  breakerAuth.obtenerEstado(),
+      datosBreaker: breakerDatos.obtenerEstado()
+    };
+  }
 }
 
-// Exportamos una sola instancia — Singleton implícito
-module.exports = new InformeService();
+// Singleton — una sola instancia
+module.exports = new ServicioInformes();
