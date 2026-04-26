@@ -51,7 +51,7 @@ class CircuitBreaker {
             }
         }
 
-        // si esta cerrado o HALF_OPEN: intentamos la llamada
+        // si esta cerrado o RECUPERACION: intentamos la llamada
         try {
             const resultado = await fn();
             this._exito();
