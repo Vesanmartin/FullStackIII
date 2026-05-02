@@ -1,8 +1,8 @@
 // src/controllers/kpiController.js
-//Controlador: recibir el request HTTP, llamar al patron correcto y devolver respuesta.
+//Controlador: Acá es recibir el request HTTP, llamar al patron correcto y devolver respuesta.
 // Coordina, no tiene lógica del negocio.
 
-const KPIFactory = require('../patterns/kpiFactory');
+const FabricaKPI = require('../patterns/kpiFactory');
 
 //POST /api/kpis/calculate/:type
 const calcular = async (req, res) => {
@@ -22,7 +22,7 @@ const calcular = async (req, res) => {
         }
 
         // Factory method: fabrica de crear calculator segun tipo
-        const calculador = KPIFactory.create(type);
+        const calculador = FabricaKPI.crear(type);
         const resultado = calculador.calculate(data);
 
         res.json({
@@ -30,7 +30,7 @@ const calcular = async (req, res) => {
             timestamp: new Date().toISOString(),
             kpi: resultado
         });
-    } catch (error) {
+    } catch (err) {
         const status = err.message.includes('no existe') ? 400 : 500;
         res.status(status).json({ success: false, error: err.message });
     }
@@ -40,7 +40,7 @@ const calcular = async (req, res) => {
 
 const obtenerTipos = (req, res) => {
     res.json({
-        tipos: KPIFactory.getTiposDisponibles()
+        tipos: FabricaKPI.getTiposDisponibles()
     });
 };
 

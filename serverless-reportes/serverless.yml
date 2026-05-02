@@ -1,0 +1,31 @@
+service: grupo-cordillera-reportes
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  environment:
+    NODE_ENV: development
+
+plugins:
+  - serverless-offline
+
+functions:
+
+  generarReporte:
+    handler: src/handlers/generarReporte.handler
+    events:
+      - http:
+          path: /reportes/generar
+          method: post
+          cors: true
+
+  reporteMensual:
+    handler: src/handlers/generarReporte.reporteMensual
+    events:
+      - http:
+          path: /reportes/mensual
+          method: get
+          cors: true

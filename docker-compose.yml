@@ -1,0 +1,41 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+
+  kpi-service:
+    build: ./kpi-service
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+    restart: on-failure
+
+  informes-service:
+    build: ./informes-service
+    ports:
+      - "3004:3004"
+    environment:
+      PORT: 3004
+      KPI_SERVICE_URL: http://kpi-service:3002
+      GESTION_SERVICE_URL: http://gestion-service:3003
+    depends_on:
+      - kpi-service
+    restart: on-failure
+
+#docker-compose
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"    # puerto para los servicios Node
+      - "15672:15672"  # panel web de administración
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
