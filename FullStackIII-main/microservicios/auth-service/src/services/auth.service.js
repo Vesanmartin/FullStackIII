@@ -39,4 +39,6 @@ export const loginUser = async (email, password) => {
   );
 
   return token;
+
+  docker -v
 };
