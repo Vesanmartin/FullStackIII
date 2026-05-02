@@ -1,15 +1,1 @@
-const express = require('express');
-const app = express();
-
-const importRoutes = require('./src/routes/importRoutes');
-
-app.use(express.json());
-
-// Ruta base del microservicio
-app.use('/api/import', importRoutes);
-
-const PORT = 3001;
-
-app.listen(PORT, () => {
-    console.log(`Import Service corriendo en puerto ${PORT}`);
-});
+const express = require('express'); const app = express(); const path = require('path'); console.log(path.resolve('./src/routes/importRoutes.js')); const importRoutes = require('./src/routes/importRoutes'); app.use(express.json()); app.use('/api/import', importRoutes); const PORT = 3003; app.listen(PORT, () => { console.log('Import Service corriendo en puerto ' + PORT); });

@@ -1,0 +1,1 @@
+const express = require('express'); const enrutador = express.Router(); const importController = require('../controllers/importController'); enrutador.post('/datos', importController.importarDatos); enrutador.get('/health', importController.health); module.exports = enrutador;
