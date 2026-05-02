@@ -1,32 +1,28 @@
-
-# docker-compose.yml
-
 version: '3.8'
-
-
 
 services:
 
+  mysql:
+    image: mysql:8
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: authdb
+    ports:
+      - "3306:3306"
 
-
- auth-service:
-
-  build: ./auth-service
-
-  ports:
-
-   - "3001:3001"
-
-  environment:
-
-   PORT: 3001
-
-
-   AUTH_SERVICE_URL: http://auth-service:3001
-
-
-  depends_on:
-
-   - auth-service
-
-  restart: on-failure
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASS: root
+      DB_NAME: authdb
+    depends_on:
+      - mysql
+    restart: on-failure
