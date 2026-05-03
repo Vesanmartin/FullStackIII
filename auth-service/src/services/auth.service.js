@@ -1,44 +1,50 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import users from "../models/user.model.js";
+// auth-service/src/services/auth.service.js
+// Lógica de negocio para registro e inicio de sesión
+// Usa el modelo para acceder a la base de datos
 
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { buscarPorEmail, crearUsuario } from '../models/user.model.js';
+
+// Registra un usuario nuevo verificando que no exista antes
 export const registerUser = async (email, password) => {
-  const existing = users.find(u => u.email === email);
-  if (existing) {
-    throw new Error("Usuario ya existe");
+
+  // Verificamos si el usuario ya existe en la base de datos
+  const usuarioExistente = await buscarPorEmail(email);
+  if (usuarioExistente) {
+    throw new Error('Usuario ya existe');
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  // Encriptamos la contraseña antes de guardarla
+  const passwordEncriptado = await bcrypt.hash(password, 10);
 
-  const newUser = {
-    id: Date.now(),
-    email,
-    password: hashedPassword
-  };
+  // Guardamos el usuario en la base de datos
+  await crearUsuario(email, passwordEncriptado);
 
-  users.push(newUser);
-
-  return newUser;
+  return { mensaje: 'Usuario registrado correctamente' };
 };
 
+// Verifica credenciales y retorna un token JWT si son correctas
 export const loginUser = async (email, password) => {
-  const user = users.find(u => u.email === email);
-  if (!user) {
-    throw new Error("Usuario no existe");
+
+  // Buscamos el usuario en la base de datos
+  const usuario = await buscarPorEmail(email);
+  if (!usuario) {
+    throw new Error('Usuario no existe');
   }
 
-  const isValid = await bcrypt.compare(password, user.password);
-  if (!isValid) {
-    throw new Error("Contraseña incorrecta");
+  // Comparamos la contraseña ingresada con la encriptada
+  const passwordValido = await bcrypt.compare(password, usuario.password);
+  if (!passwordValido) {
+    throw new Error('Contraseña incorrecta');
   }
 
+  // Generamos el token JWT con duración de 1 hora
   const token = jwt.sign(
-    { id: user.id, email: user.email },
+    { id: usuario.id, email: usuario.email },
     process.env.JWT_SECRET,
-    { expiresIn: "1h" }
+    { expiresIn: '1h' }
   );
 
   return token;
-
-  docker -v
 };

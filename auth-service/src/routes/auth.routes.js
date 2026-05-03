@@ -1,24 +1,26 @@
-import express from "express";
-import { register, login } from "../controllers/auth.controller.js";
-import { Router } from "express";
-import db from "../db.js";
+// auth-service/src/routes/auth.routes.js
+// Define las rutas del servicio de autenticación
 
+import express from 'express';
+import { register, login } from '../controllers/auth.controller.js';
+import conexion from '../db.js';
 
 const router = express.Router();
 
-router.post("/register", register);
-router.post("/login", login);
+// Ruta para registrar un usuario nuevo
+router.post('/register', register);
 
-const router = Router();
+// Ruta para iniciar sesión
+router.post('/login', login);
 
-router.get("/users", async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT * FROM usuarios");
-    res.json(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error en la BD" });
-  }
+// Ruta para obtener todos los usuarios (útil para pruebas)
+router.get('/users', (req, res) => {
+  conexion.query('SELECT * FROM usuarios', (err, resultados) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error en la BD' });
+    }
+    res.json(resultados);
+  });
 });
 
 export default router;
