@@ -4,7 +4,8 @@ const express    = require('express');
 const router     = express.Router();
 const {
   getDashboard,
-  getEstadoCircuitos
+  getEstadoCircuitos,
+  getHistorial
 } = require('../controllers/informeController');
 
 /**
@@ -49,5 +50,8 @@ router.get('/dashboard', getDashboard);
  *         description: Estado de los circuitos
  */
 router.get('/circuitos', getEstadoCircuitos);
+
+// GET /api/informes/historial - Retorna informes guardados en BD
+router.get('/historial', getHistorial);
 
 module.exports = router;

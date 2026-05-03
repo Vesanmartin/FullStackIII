@@ -1,47 +1,62 @@
-// src/controllers/kpiController.js
-//Controlador: Acá es recibir el request HTTP, llamar al patron correcto y devolver respuesta.
+// kpi-service/src/controllers/kpiController.js
+// Controlador: recibe el request HTTP, llama al patrón correcto y devuelve respuesta.
 // Coordina, no tiene lógica del negocio.
 
 const FabricaKPI = require('../patterns/kpiFactory');
+const conexion = require('../config/database');
 
-//POST /api/kpis/calculate/:type
+// POST /api/kpis/calculate/:type
 const calcular = async (req, res) => {
+  try {
+    const { type } = req.params;
+    const { data } = req.body;
 
-    try {
-        // req.params : variables que vienen de la URL
-        // EJ_ /calculate/ventas ->type = 'ventas'
-        const { type } = req.params;
-        //req.body-> json que envio cliente
-        const { data } = req.body;
-
-        if (!data) {
-            return res.status(400).json({
-                error: 'Falta cambo "fecha" en el body'
-
-            });
-        }
-
-        // Factory method: fabrica de crear calculator segun tipo
-        const calculador = FabricaKPI.crear(type);
-        const resultado = calculador.calculate(data);
-
-        res.json({
-            success: true,
-            timestamp: new Date().toISOString(),
-            kpi: resultado
-        });
-    } catch (err) {
-        const status = err.message.includes('no existe') ? 400 : 500;
-        res.status(status).json({ success: false, error: err.message });
+    if (!data) {
+      return res.status(400).json({
+        error: 'Falta campo "data" en el body'
+      });
     }
-};
 
-// get /api/kpis /tipos
+    // Factory method: fabrica el calculador según el tipo
+    const calculador = FabricaKPI.crear(type);
+    const resultado = calculador.calculate(data);
 
-const obtenerTipos = (req, res) => {
+    // Guardamos el resultado en la base de datos
+    const query = 'INSERT INTO kpi_resultados (tipo, sucursal, resultado, periodo) VALUES (?, ?, ?, ?)';
+    conexion.query(
+      query,
+      [type, data.sucursal || 'general', JSON.stringify(resultado), data.periodo || null],
+      (err) => {
+        if (err) console.error('Error guardando KPI en BD:', err.message);
+      }
+    );
+
     res.json({
-        tipos: FabricaKPI.getTiposDisponibles()
+      success: true,
+      timestamp: new Date().toISOString(),
+      kpi: resultado
     });
+
+  } catch (err) {
+    const status = err.message.includes('no existe') ? 400 : 500;
+    res.status(status).json({ success: false, error: err.message });
+  }
 };
 
-module.exports = { calcular, obtenerTipos };
+// GET /api/kpis/tipos
+const obtenerTipos = (req, res) => {
+  res.json({
+    tipos: FabricaKPI.getTiposDisponibles()
+  });
+};
+
+// GET /api/kpis/historial
+// Retorna todos los KPIs calculados guardados en BD
+const getHistorial = (req, res) => {
+  conexion.query('SELECT * FROM kpi_resultados ORDER BY created_at DESC', (err, resultados) => {
+    if (err) return res.status(500).json({ error: 'Error en la BD' });
+    res.json(resultados);
+  });
+};
+
+module.exports = { calcular, obtenerTipos, getHistorial };

@@ -2,8 +2,7 @@
 
 const express = require('express');
 const router  = express.Router();
-const { calcular, obtenerTipos } = require('../controllers/kpiController');
-
+const { calcular, obtenerTipos, getHistorial } = require('../controllers/kpiController');
 /**
  * @swagger
  * /api/kpis/health:
@@ -67,5 +66,9 @@ router.get('/tipos', obtenerTipos);
  *         description: Error interno del servidor
  */
 router.post('/calculate/:type', calcular);
+// GET /api/kpis/historial - Retorna KPIs guardados en BD
+router.get('/historial', getHistorial);
+
+
 
 module.exports = router;

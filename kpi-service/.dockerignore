@@ -1,3 +1,8 @@
-node_modules
-.env
-*.log
+$contenido = "node_modules`n.env`n.git`nnpm-debug.log"
+Set-Content api-gateway\.dockerignore $contenido
+Set-Content auth-service\.dockerignore $contenido
+Set-Content bff\.dockerignore $contenido
+Set-Content gestion-service\.dockerignore $contenido
+Set-Content importacion-service\.dockerignore $contenido
+Set-Content informes-service\.dockerignore $contenido
+Set-Content kpi-service\.dockerignore $contenido

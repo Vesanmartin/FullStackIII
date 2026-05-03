@@ -3,34 +3,31 @@ version: '3.8'
 
 services:
 
-  kpi-service:
-    build: ./kpi-service
+  # Base de datos MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
     ports:
-      - "3002:3002"
+      - "3306:3306"
     environment:
-      PORT: 3002
+      MYSQL_ROOT_PASSWORD: Nenas.2120
+      MYSQL_DATABASE: grupocordillera
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: on-failure
 
-  informes-service:
-    build: ./informes-service
-    ports:
-      - "3004:3004"
-    environment:
-      PORT: 3004
-      KPI_SERVICE_URL: http://kpi-service:3002
-      GESTION_SERVICE_URL: http://gestion-service:3003
-    depends_on:
-      - kpi-service
-    restart: on-failure
-
-#docker-compose
-
+  # RabbitMQ
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
-      - "5672:5672"    # puerto para los servicios Node
-      - "15672:15672"  # panel web de administración
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin123
@@ -39,3 +36,119 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: on-failure
+
+  # Auth Service
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: Nenas.2120
+      DB_NAME: grupocordillera
+      JWT_SECRET: supersecreto123
+    depends_on:
+      - mysql
+    restart: on-failure
+
+  # Importacion Service
+  importacion-service:
+    build: ./importacion-service
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: Nenas.2120
+      DB_NAME: grupocordillera
+    depends_on:
+      - mysql
+    restart: on-failure
+
+  # KPI Service
+  kpi-service:
+    build: ./kpi-service
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: Nenas.2120
+      DB_NAME: grupocordillera
+      RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
+    depends_on:
+      - mysql
+      - rabbitmq
+    restart: on-failure
+
+  # Informes Service
+  informes-service:
+    build: ./informes-service
+    ports:
+      - "3004:3004"
+    environment:
+      PORT: 3004
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: Nenas.2120
+      DB_NAME: grupocordillera
+      KPI_SERVICE_URL: http://kpi-service:3002
+      GESTION_SERVICE_URL: http://gestion-service:3006
+      RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
+    depends_on:
+      - mysql
+      - rabbitmq
+      - kpi-service
+    restart: on-failure
+
+  # BFF
+  bff:
+    build: ./bff
+    ports:
+      - "3005:3005"
+    environment:
+      PORT: 3005
+    depends_on:
+      - auth-service
+      - kpi-service
+      - informes-service
+    restart: on-failure
+
+  # Gestion Service
+  gestion-service:
+    build: ./gestion-service
+    ports:
+      - "3006:3006"
+    environment:
+      PORT: 3006
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: Nenas.2120
+      DB_NAME: grupocordillera
+    depends_on:
+      - mysql
+    restart: on-failure
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+    depends_on:
+      - auth-service
+      - kpi-service
+      - informes-service
+      - importacion-service
+      - gestion-service
+      - bff
+    restart: on-failure
+
+volumes:
+  mysql_data:
