@@ -23,4 +23,67 @@ router.get('/users', (req, res) => {
   });
 });
 
+// Patrón Strategy: devuelve permisos según rol.
+// Uso: GET /api/auth/permisos?rol=admin
+import { ContextoPermisos } from '../strategies/rolStrategy.js';
+
+router.get('/permisos', (req, res) => {
+  const { rol } = req.query;
+  if (!rol) {
+    return res.status(400).json({ error: "Falta parametro rol" });
+  }
+  const contexto = new ContextoPermisos(rol);
+  res.json(contexto.getPermisos());
+});
+
+// Endpoint para actualizar rol de usuario
+// Uso: PUT /api/auth/usuarios/:id/rol
+// Body: { rol: "gerente" }
+router.put('/usuarios/:id/rol', (req, res) => {
+  const { id } = req.params;
+  const { rol } = req.body;
+
+  // Validar que el rol sea válido
+  const rolesValidos = ['admin', 'gerente', 'operador'];
+  if (!rolesValidos.includes(rol)) {
+    return res.status(400).json({ error: 'Rol no válido' });
+  }
+
+  conexion.query(
+    'UPDATE usuarios SET rol = ? WHERE id = ?',
+    [rol, id],
+    (err, resultado) => {
+      if (err) return res.status(500).json({ error: 'Error actualizando rol' });
+      if (resultado.affectedRows === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+      res.json({ success: true, mensaje: `Rol actualizado a ${rol}` });
+    }
+  );
+});
+
+// Endpoint para actualizar rol de usuario — usado desde el Panel Admin
+// Uso: PUT /api/auth/usuarios/:id/rol
+// ejemplo: { rol: "gerente" }
+router.put('/usuarios/:id/rol', (req, res) => {
+  const { id } = req.params;
+  const { rol } = req.body;
+
+  // Validar que el rol sea uno de los permitidos
+  const rolesValidos = ['admin', 'gerente', 'operador'];
+  if (!rolesValidos.includes(rol)) {
+    return res.status(400).json({ error: 'Rol no valido' });
+  }
+
+  conexion.query(
+    'UPDATE usuarios SET rol = ? WHERE id = ?',
+    [rol, id],
+    (err, resultado) => {
+      if (err) return res.status(500).json({ error: 'Error actualizando rol' });
+      if (resultado.affectedRows === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+      res.json({ success: true, mensaje: `Rol actualizado a ${rol}` });
+    }
+  );
+});
+
+
+
 export default router;
