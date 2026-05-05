@@ -9,6 +9,10 @@ const { iniciarConsumidor } = require('./events/consumidor');
 
 
 const app  = express();
+const cors = require('cors');
+app.use(cors());
+
+
 const PORT = process.env.PORT || 3002;
 
 app.use(express.json());
