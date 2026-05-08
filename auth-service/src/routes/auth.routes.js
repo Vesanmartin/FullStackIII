@@ -44,7 +44,7 @@ router.put('/usuarios/:id/rol', (req, res) => {
   const { rol } = req.body;
 
   // Validar que el rol sea válido
-  const rolesValidos = ['admin', 'gerente', 'operador'];
+  const rolesValidos = ['admin', 'gerente', 'operador','supersayayin'];
   if (!rolesValidos.includes(rol)) {
     return res.status(400).json({ error: 'Rol no válido' });
   }
@@ -80,6 +80,22 @@ router.put('/usuarios/:id/rol', (req, res) => {
       if (err) return res.status(500).json({ error: 'Error actualizando rol' });
       if (resultado.affectedRows === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
       res.json({ success: true, mensaje: `Rol actualizado a ${rol}` });
+    }
+  );
+});
+
+// Endpoint para eliminar usuario
+// Uso: DELETE /api/auth/usuarios/:id
+router.delete('/usuarios/:id', (req, res) => {
+  const { id } = req.params;
+
+  conexion.query(
+    'DELETE FROM usuarios WHERE id = ?',
+    [id],
+    (err, resultado) => {
+      if (err) return res.status(500).json({ error: 'Error eliminando usuario' });
+      if (resultado.affectedRows === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+      res.json({ success: true, mensaje: 'Usuario eliminado correctamente' });
     }
   );
 });
