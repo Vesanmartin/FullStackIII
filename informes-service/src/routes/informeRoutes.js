@@ -54,4 +54,37 @@ router.get('/circuitos', getEstadoCircuitos);
 // GET /api/informes/historial - Retorna informes guardados en BD
 router.get('/historial', getHistorial);
 
+
+
+//
+/**
+ * @swagger
+ * /api/informes/publicar-evento:
+ *   post:
+ *     summary: Publica un evento de prueba en RabbitMQ
+ *     description: Simula que informes-service notifica a kpi-service datos nuevos
+ *     responses:
+ *       200:
+ *         description: Evento publicado en cola datos.importados
+ */
+router.post('/publicar-evento', async (req, res) => {
+  try {
+    const { publicarDatosImportados } = require('../events/publicador');
+    await publicarDatosImportados({
+      sucursal:  'Santiago Centro',
+      tipo:      'ventas',
+      periodo:   '2026-05',
+      registros: 150
+    });
+    res.json({ 
+      mensaje:  'Ejemplo de un Evento publicado en cola datos.importados',
+      cola:     'datos.importados',
+      receptor: 'kpi-service'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 module.exports = router;
