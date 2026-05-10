@@ -57,4 +57,20 @@ const getEstadoCircuitos = (req, res) => {
   }
 };
 
-module.exports = { getDashboard, getEstadoCircuitos, getHistorial };
+// GET /api/informes/datos-dashboard
+// Devuelve datos reales desde MySQL para el dashboard de informes
+// GET /api/informes/datos-dashboard definimos periodos
+const getDatosDashboard = async (req, res) => {
+  try {
+    const contextoService = require('../services/contextoService');
+    // Leemos los filtros desde la URL (?año=2024&mes_inicio=1&mes_fin=6)
+    const { año, mes_inicio, mes_fin } = req.query;
+    const datos = await contextoService.obtenerContexto({ año, mes_inicio, mes_fin });
+    res.json({ success: true, datos });
+  } catch (err) {
+    console.error('Error obteniendo datos dashboard:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+module.exports = { getDashboard, getEstadoCircuitos, getHistorial,getDatosDashboard };

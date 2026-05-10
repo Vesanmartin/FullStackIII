@@ -5,7 +5,8 @@ const router     = express.Router();
 const {
   getDashboard,
   getEstadoCircuitos,
-  getHistorial
+  getHistorial,
+  getDatosDashboard
 } = require('../controllers/informeController');
 
 /**
@@ -85,6 +86,19 @@ router.post('/publicar-evento', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+/**
+ * @swagger
+ * /api/informes/datos-dashboard:
+ *   get:
+ *     summary: Devuelve datos reales desde MySQL para graficar
+ *     description: Consulta ventas ERP, top productos, sucursales y POS
+ *     responses:
+ *       200:
+ *         description: Datos listos para el dashboard de informes
+ */
+router.get('/datos-dashboard', getDatosDashboard);
+
 
 
 module.exports = router;
