@@ -1,0 +1,20 @@
+# Imagen base — Node.js 20 versión liviana
+FROM node:20-alpine
+
+# Carpeta de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copia package.json primero (para aprovechar cache de Docker)
+COPY package.json .
+
+# Instala dependencias
+RUN npm install --production
+
+# Copia el resto del código
+COPY . .
+
+# Puerto que usará el contenedor
+EXPOSE 3004
+
+# Comando para arrancar
+CMD ["node", "src/app.js"]
