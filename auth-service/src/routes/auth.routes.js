@@ -68,7 +68,7 @@ router.put('/usuarios/:id/rol', (req, res) => {
   const { rol } = req.body;
 
   // Validar que el rol sea uno de los permitidos
-  const rolesValidos = ['admin', 'gerente', 'operador'];
+  const rolesValidos = ['admin', 'gerente', 'operador','supersayayin'];
   if (!rolesValidos.includes(rol)) {
     return res.status(400).json({ error: 'Rol no valido' });
   }
