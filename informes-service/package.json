@@ -1,0 +1,24 @@
+{
+  "name": "informes-service",
+  "version": "1.0.0",
+  "description": "Microservicio de informes - Grupo Cordillera",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "amqplib": "^1.0.3",
+    "axios": "^1.15.2",
+    "cors": "^2.8.6",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mysql2": "^3.22.3",
+    "ollama": "^0.6.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
