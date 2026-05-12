@@ -1,28 +1,23 @@
 // auth-service/src/strategies/rolStrategy.js
 // PATRÓN: Strategy
-// Define una familia de algoritmos intercambiables — cada rol tiene
-// su propia estrategia de permisos. Esto para los usuarios y el perfil y los permisos que se asignaran.
-
-
-// Estrategia base 
-// Todas las estrategias deben implementar getPermisos()
 class EstrategiaRol {
   getPermisos() {
     throw new Error("getPermisos() debe implementarse en cada estrategia");
   }
 }
 
-// Estrategia Admin
-// Acceso total al sistema + puede crear y eliminar usuarios
-class EstrategiaAdmin extends EstrategiaRol {
+// Acceso total — solo para demo
+class EstrategiaSuperSaiyajin extends EstrategiaRol {
   getPermisos() {
     return {
-      rol: "admin",
+      rol: "supersaiyajin",
       modulos: {
-        dashboard:   false,
-        gestion:     false,
-        importacion: false,
-        informes:    false
+        dashboard:      true,
+        gestion:        true,
+        importacion:    true,
+        informes:       true,
+        administracion: true,
+        kpi:            true
       },
       puedeCrearUsuarios:    true,
       puedeEliminarUsuarios: true,
@@ -31,17 +26,38 @@ class EstrategiaAdmin extends EstrategiaRol {
   }
 }
 
-// Estrategia Gerente
-// Acceso a dashboard, gestión e informes — no puede importar datos
+// Administra usuarios y gestión — no opera ni ve reportes
+class EstrategiaAdmin extends EstrategiaRol {
+  getPermisos() {
+    return {
+      rol: "admin",
+      modulos: {
+        dashboard:      false,
+        gestion:        true,
+        importacion:    false,
+        informes:       false,
+        administracion: true,
+        kpi:            false
+      },
+      puedeCrearUsuarios:    true,
+      puedeEliminarUsuarios: true,
+      puedeVerReportes:      false
+    };
+  }
+}
+
+// Ve informes, chatbot y KPIs — no opera el sistema
 class EstrategiaGerente extends EstrategiaRol {
   getPermisos() {
     return {
       rol: "gerente",
       modulos: {
-        dashboard:   true,
-        gestion:     false,
-        importacion: false,
-        informes:    true
+        dashboard:      false,
+        gestion:        false,
+        importacion:    false,
+        informes:       true,
+        administracion: false,
+        kpi:            true
       },
       puedeCrearUsuarios:    false,
       puedeEliminarUsuarios: false,
@@ -50,17 +66,18 @@ class EstrategiaGerente extends EstrategiaRol {
   }
 }
 
-// Estrategia Operador 
-// Acceso solo a importación y dashboard — no ve gestión ni informes
+// Importa datos y ve dashboard — no gestiona ni reportea
 class EstrategiaOperador extends EstrategiaRol {
   getPermisos() {
     return {
       rol: "operador",
       modulos: {
-        dashboard:   false,
-        gestion:     false,
-        importacion: true,
-        informes:    false
+        dashboard:      true,
+        gestion:        true,
+        importacion:    true,
+        informes:       false,
+        administracion: false,
+        kpi:            false
       },
       puedeCrearUsuarios:    false,
       puedeEliminarUsuarios: false,
@@ -68,13 +85,13 @@ class EstrategiaOperador extends EstrategiaRol {
     };
   }
 }
-// Contexto
-// El contexto recibe un rol como string y selecciona la estrategia
-// correcta automáticamente. El resto del sistema solo usa el contexto,
-// nunca instancia las estrategias directamente.
+
 class ContextoPermisos {
   constructor(rol) {
     switch (rol) {
+      case "supersaiyajin":
+        this.estrategia = new EstrategiaSuperSaiyajin();
+        break;
       case "admin":
         this.estrategia = new EstrategiaAdmin();
         break;
