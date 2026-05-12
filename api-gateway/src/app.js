@@ -36,6 +36,7 @@ aplicacion.get('/health', (req, res) => {
 // Rutas PÚBLICAS
 aplicacion.use('/api/auth/login',    limitadorLogin);
 aplicacion.use('/api/auth/register', limitadorLogin);
+aplicacion.use('/api/auth/verify-code', limitadorLogin);
 
 aplicacion.use('/api/auth', createProxyMiddleware({
   target:       process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
@@ -52,8 +53,9 @@ aplicacion.use('/api/auth', createProxyMiddleware({
 // Rutas PROTEGIDAS
 aplicacion.use('/api/kpis',
   verificarToken,
+  verificarRol('gerente', 'supersaiyajin'),
   createProxyMiddleware({
-    target:       process.env.KPI_SERVICE_URL || 'http://localhost:3002',
+    target: process.env.KPI_SERVICE_URL || 'http://localhost:3002',
     changeOrigin: true,
     on: {
       error: (err, req, res) => {
@@ -63,10 +65,12 @@ aplicacion.use('/api/kpis',
   })
 );
 
+
 aplicacion.use('/api/gestion',
   verificarToken,
+  verificarRol('admin', 'operador', 'supersaiyajin'),
   createProxyMiddleware({
-    target:       process.env.GESTION_SERVICE_URL || 'http://localhost:3003',
+    target: process.env.GESTION_SERVICE_URL || 'http://localhost:3003',
     changeOrigin: true,
     on: {
       error: (err, req, res) => {
@@ -76,11 +80,12 @@ aplicacion.use('/api/gestion',
   })
 );
 
+
 aplicacion.use('/api/informes',
   verificarToken,
-  verificarRol('admin', 'gerente'),
+  verificarRol('gerente', 'supersaiyajin'),
   createProxyMiddleware({
-    target:       process.env.INFORMES_SERVICE_URL || 'http://localhost:3004',
+    target: process.env.INFORMES_SERVICE_URL || 'http://localhost:3004',
     changeOrigin: true,
     on: {
       error: (err, req, res) => {
@@ -89,6 +94,22 @@ aplicacion.use('/api/informes',
     }
   })
 );
+
+// Agregar ruta nueva
+aplicacion.use('/api/importacion',
+  verificarToken,
+  verificarRol('operador', 'supersaiyajin'), // ← nueva
+  createProxyMiddleware({
+    target: process.env.IMPORTACION_SERVICE_URL || 'http://localhost:3005',
+    changeOrigin: true,
+    on: {
+      error: (err, req, res) => {
+        res.status(502).json({ error: 'Importacion service no disponible' });
+      }
+    }
+  })
+);
+
 
 // Ruta no encontrada
 aplicacion.use((req, res) => {
@@ -99,9 +120,12 @@ aplicacion.use((req, res) => {
 
 aplicacion.listen(PUERTO, () => {
   console.log(` API Gateway en http://localhost:${PUERTO}`);
-  console.log(` POST /api/auth/login   : auth-service:3001  [público]`);
-  console.log(`  *    /api/kpis/*      : kpi-service:3002   [auth]`);
-  console.log(`  *    /api/gestion/*    : gestion-service:3003 [auth]`);
-  console.log(`  *    /api/informes/*   : informes-service:3004 [auth+rol]`);
-  console.log(`  GET  /health           : estado del gateway`);
+  console.log(` POST /api/auth/login        : auth-service:3001  [público]`);
+  console.log(` POST /api/auth/verify-code  : auth-service:3001  [público]`);
+  console.log(`  *    /api/kpis/*           : kpi-service:3002   [gerente, supersaiyajin]`);
+  console.log(`  *    /api/gestion/*        : gestion-service:3003 [admin, operador, supersaiyajin]`);
+  console.log(`  *    /api/informes/*       : informes-service:3004 [gerente, supersaiyajin]`);
+  console.log(`  *    /api/importacion/*    : importacion-service:3005 [operador, supersaiyajin]`);
+  console.log(`  GET  /health               : estado del gateway`);
+
 });
