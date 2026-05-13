@@ -1,24 +1,12 @@
-// gestion-service/src/db.js
-// Conexión a MySQL para el servicio de gestión
-
 const mysql = require('mysql2');
-const dotenv = require('dotenv');
 
-dotenv.config();
-
-const conexion = mysql.createConnection({
-  host:     process.env.DB_HOST,
-  user:     process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+const conexion = mysql.createPool({
+    host:     process.env.DB_HOST || 'localhost',
+    user:     process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'Nenas.2120',
+    database: process.env.DB_NAME || 'grupocordillera',
+    waitForConnections: true,
+    connectionLimit: 10,
 });
 
-conexion.connect((err) => {
-  if (err) {
-    console.error('Error de conexión:', err);
-    return;
-  }
-  console.log('Gestion service conectado a MySQL');
-});
-
-module.exports = conexion;
+module.exports = conexion.promise();

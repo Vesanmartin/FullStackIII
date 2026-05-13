@@ -3,10 +3,11 @@
 // Decide qué procesador crear según el módulo recibido.
 // El controller no necesita saber qué procesador usar — solo pide uno.
 
-const ProcesadorERP = require('../procesadores/ProcesadorERP');
-const { ProcesadorEmpleados, ProcesadorRemuneraciones, ProcesadorAsistencia } = require('../procesadores/ProcesadorRRHH');
-const { ProcesadorTerceros, ProcesadorInteracciones, ProcesadorProcesosVenta } = require('../procesadores/ProcesadorCRM');
-const ProcesadorPOS = require('../procesadores/ProcesadorPOS');
+const ProcesadorERP = require('../procesadores/procesadorERP');
+const { ProcesadorEmpleados, ProcesadorRemuneraciones, ProcesadorAsistencia } = require('../procesadores/procesadorRRHH');
+const { ProcesadorTerceros, ProcesadorInteracciones, ProcesadorProcesosVenta } = require('../procesadores/procesadorCRM');
+const ProcesadorPOS = require('../procesadores/procesadorPOS');
+
 
 class ProcesadorFactory {
 

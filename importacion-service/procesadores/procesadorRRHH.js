@@ -1,7 +1,7 @@
 // src/procesadores/ProcesadorRRHH.js
 // Procesador para módulo RRHH — empleados, remuneraciones, asistencia
 
-const ProcesadorBase = require('./ProcesadorBase');
+const ProcesadorBase = require('./procesadorBase');
 
 class ProcesadorEmpleados extends ProcesadorBase {
   constructor() {

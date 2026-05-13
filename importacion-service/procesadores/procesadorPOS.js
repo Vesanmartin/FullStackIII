@@ -1,7 +1,7 @@
 // src/procesadores/ProcesadorPOS.js
 // Procesador para módulo POS — ventas por boleta
 
-const ProcesadorBase = require('./ProcesadorBase');
+const ProcesadorBase = require('./procesadorBase');
 
 class ProcesadorPOS extends ProcesadorBase {
   constructor() {

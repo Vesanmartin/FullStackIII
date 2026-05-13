@@ -8,8 +8,8 @@ const csv               = require('csv-parser');
 const fs                = require('fs');
 const path              = require('path');
 const importService     = require('../services/importService');
-const ProcesadorFactory = require('../../procesadores/ProcesadorFactory');
-const importacionRepo = require('../../repositories/ImportacionRepository');
+const ProcesadorFactory = require('../../procesadores/procesadorFactory');
+const importacionRepo = require('../../repositories/importacionRepository');
 
 // Configuración multer
 const almacenamiento = multer.diskStorage({

@@ -108,7 +108,7 @@ class ContextoService {
 }
   // Ventas ERP por sucursal
   _ventasPorSucursalERP(año, mes_inicio, mes_fin) {
-  const condiciones = ["tipo = 'venta'"];
+  const condiciones = ["tipo = 'venta'"];      //implica que el chatbot puede responder preguntas "filtradas", Where se construye con los datos que lleguen.
   const valores = [];
 
   if (año) { condiciones.push('año = ?'); valores.push(parseInt(año)); }

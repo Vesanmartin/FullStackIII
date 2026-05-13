@@ -3,7 +3,19 @@
 
 const express = require('express');
 const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
 
+const opcionesSwagger = {
+  definition: {
+    openapi: '3.0.0',
+    info: { title: 'Gestion Service API', version: '1.0.0' },
+  },
+  apis: ['./src/routes/*.js'],
+};
+
+const especificacion = swaggerJsdoc(opcionesSwagger);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(especificacion));
 // Permite recibir JSON en el body de las peticiones
 app.use(express.json());
 
@@ -24,8 +36,8 @@ app.get('/', (req, res) => {
 // Middleware de errores va siempre al final
 app.use(errorHandler);
 
-// Puerto corregido — 3000 estaba ocupado por api-gateway
-const PORT = 3003;
+// Puerto corregido 
+const PORT = process.env.PORT || 3006;
 app.listen(PORT, () => {
     console.log(`Gestion Service corriendo en puerto ${PORT}`);
 });

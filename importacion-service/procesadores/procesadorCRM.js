@@ -1,7 +1,7 @@
 // src/procesadores/ProcesadorCRM.js
 // Procesador para módulo CRM — terceros, interacciones, procesos venta
 
-const ProcesadorBase = require('./ProcesadorBase');
+const ProcesadorBase = require('./procesadorBase');
 
 class ProcesadorTerceros extends ProcesadorBase {
   constructor() {

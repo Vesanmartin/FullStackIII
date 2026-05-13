@@ -1,18 +1,18 @@
 // src/procesadores/ProcesadorERP.js
 // Procesador específico para datos ERP (transacciones compras/ventas)
 
-const ProcesadorBase = require('./ProcesadorBase');
+const ProcesadorBase = require('./procesadorBase');
 
 class ProcesadorERP extends ProcesadorBase {
   constructor() {
     super('ProcesadorERP', 'transacciones_erp', [
-      'numero_documento','tipo','fecha','año','mes',
-      'codigo_producto','nombre_producto','categoria',
-      'cuenta_contable','nombre_cuenta','cuenta_inventario',
-      'sucursal','rut_tercero','nombre_tercero','tipo_tercero',
-      'cantidad','precio_unitario','descuento',
-      'subtotal','iva','total','año_importacion'
-    ]);
+  'numero_documento','tipo','fecha','año','mes',
+  'codigo_producto','nombre_producto','categoria',
+  'cuenta_contable','nombre_cuenta','cuenta_inventario',
+  'sucursal','rut_tercero','nombre_tercero','tipo_tercero',
+  'cantidad','precio_unitario','descuento',
+  'subtotal','iva','total','año_importacion'
+]);
   }
 
   mapearFila(fila) {
@@ -23,7 +23,7 @@ class ProcesadorERP extends ProcesadorBase {
       numero_documento:  fila.numero_documento,
       tipo:              fila.tipo,
       fecha:             fila.fecha,
-      'año':             parseInt(fila['año'] || fila.anio) || new Date(fila.fecha).getFullYear(),
+      'año':    parseInt(fila['año']) || parseInt(fila.anio) || new Date(fila.fecha).getFullYear(),
       mes:               parseInt(fila.mes) || new Date(fila.fecha).getMonth() + 1,
       codigo_producto:   fila.codigo_producto || '',
       nombre_producto:   fila.nombre_producto || '',
@@ -41,7 +41,7 @@ class ProcesadorERP extends ProcesadorBase {
       subtotal:          parseFloat(fila.subtotal) || 0,
       iva:               parseFloat(fila.iva) || 0,
       total:             parseFloat(fila.total) || 0,
-      'año_importacion': parseInt(fila['año_importacion'] || fila.anio_importacion) || new Date().getFullYear()
+      'año_importacion': parseInt(fila['año_importacion']) || parseInt(fila.anio_importacion) || new Date().getFullYear()
     };
   }
 }

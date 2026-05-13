@@ -5,7 +5,7 @@
 const mysql=require('mysql2');
 
 const conexion=mysql.createPool({
-    host: 'localhost',
+    host: process.env.DB_HOST || 'mysql',
     user:'root',
     password:'Nenas.2120',
     database:'grupocordillera',
